@@ -2,7 +2,7 @@
          xmlns:l="/lib/layout" xmlns:t="/lib/hudson" xmlns:f="/lib/form">
 
   <span>
-   ${%started_by_command(it.getUserName(), it.getUserUrl(), it.getVersion())}
+   ${%started_by_command(it.getUserName(), it.getUserUrl(), it.getOldRevision(), it.getNewRevision(), it.getDeployinatorDiffUrl())}
   </span>
 
 </j:jelly>

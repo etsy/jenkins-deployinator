@@ -3,12 +3,14 @@ package com.etsy.jenkins.cli;
 import com.etsy.jenkins.cli.handlers.ProxyUserOptionHandler;
 
 import hudson.AbortException;
+import hudson.EnvVars;
 import hudson.Extension;
 import hudson.cli.CLICommand;
 import hudson.console.HyperlinkNote;
 import hudson.model.AbstractBuild;
 import hudson.model.AbstractProject;
 import hudson.model.Cause;
+import hudson.model.EnvironmentContributor;
 import hudson.model.Hudson;
 import hudson.model.Item;
 import hudson.model.ParametersAction;
@@ -48,19 +50,40 @@ public class DeployinatorCommand extends CLICommand {
   public AbstractProject<?, ?> job;
 
   @Argument(
-      metaVar="VERSION",
-      usage="Unique version of recent deployinator build.",
-      required=true,
-      index=1)
-  public String version;
-
-  @Argument(
       metaVar="PROXY_USER",
       usage="LDAP of user that this build is being triggered for.",
       required=false,
       handler=ProxyUserOptionHandler.class,
-      index=2)
+      index=1)
   public User user = User.getUnknown();
+
+  @Argument(
+      metaVar="DEPLOY_TYPE",
+      usage="Name of the service being deployed.",
+      required=true,
+      index=2)
+  public String deployType;
+
+  @Argument(
+      metaVar="DEPLOY_VERSION",
+      usage="Unique build version of recent deployinator build.",
+      required=true,
+      index=3)
+  public String deployVersion;
+
+  @Argument(
+      metaVar="OLD_REVISION",
+      usage="The last revision in the previous build.",
+      required=true,
+      index=4)
+  public String oldRevision;
+
+  @Argument(
+      metaVar="NEW_REVISION",
+      usage="The last revision included in this build.",
+      required=true,
+      index=5)
+  public String newRevision;
 
   @Option(
       name="-s",
@@ -107,12 +130,14 @@ public class DeployinatorCommand extends CLICommand {
        a = new ParametersAction(values);
      }
 
-     User user = User.get(Hudson.getAuthentication().getName());
-     if (user == null) {
-       user = User.getUnknown();
-     }
-     
-     CLICause cause = new CLICause(user, version);
+     CLICause cause = 
+         new CLICause(
+             user.getDisplayName(),
+             deployType,
+             deployVersion,
+             oldRevision,
+             newRevision);
+
      Future<? extends AbstractBuild> f = 
          job.scheduleBuild2(0, cause, a);
      if (!sync) return 0;
@@ -126,13 +151,18 @@ public class DeployinatorCommand extends CLICommand {
      } while(build == null);
 
      stdout.println(
-         String.format("......... %s (%s%s%s)\n", 
+         String.format("......... %s ( %s%s%s )\n", 
           job.getDisplayName(),
           Hudson.getInstance().getRootUrl(),
           build.getUrl(),
           "console"));
      build.setDescription(
-         String.format("%s\n(%s)", cause.getVersion(), cause.getUserName()));
+         String.format(
+             "<h3>%s</h3><br/><h4>%s&rarr;%s</h4><a href='%s'>diff</a> ", 
+             cause.getUserName(),
+             cause.getOldRevision(),
+             cause.getNewRevision(),
+             cause.getDeployinatorDiffUrl()));
 
      AbstractBuild b = f.get();  // wait for completion
      stdout.println(
@@ -173,27 +203,63 @@ public class DeployinatorCommand extends CLICommand {
 
   public static class CLICause extends Cause {
 
-    private final User user;
-    private final String version;
+    private final String user;
+    private final String deployType;
+    private final String deployVersion;
+    private final String oldRevision;
+    private final String newRevision;
 
-    public CLICause(User user, String version) {
+    public CLICause(
+        String user,
+        String deployType,
+        String deployVersion,
+        String oldRevision,
+        String newRevision) {
       this.user = user;
-      this.version = version;
+      this.deployType = deployType;
+      this.deployVersion = deployVersion;
+      this.oldRevision = oldRevision;
+      this.newRevision = newRevision;
     }
 
     @Exported(visibility=3)
     public String getUserName() {
-      return user.getDisplayName();
+      User u = User.get(user, false);
+      return (u == null) ? user : u.getDisplayName();
     }
 
     @Exported(visibility=3)
     public String getUserUrl() {
-      return user.getAbsoluteUrl();
+      User u = User.get(user, false);
+      if (u == null) {
+        u = User.getUnknown();
+      }
+      return u.getAbsoluteUrl();
     }
 
     @Exported(visibility=3)
-    public String getVersion() {
-      return this.version;
+    public String getDeployVersion() {
+      return this.deployVersion;
+    }
+
+    @Exported(visibility=3)
+    public String getOldRevision() {
+      return this.oldRevision;
+    }
+
+    @Exported(visibility=3)
+    public String getNewRevision() {
+      return this.newRevision;
+    }
+
+    @Exported(visibility=3)
+    public String getDeployinatorDiffUrl() {
+      // TODO Add a global config var for deployinator host
+      return String.format(
+          "http://deployinator.etsycorp.com/diff/%s/%s/%s",
+          this.deployType,
+          this.oldRevision,
+          this.newRevision);
     }
 
     @Override
@@ -204,9 +270,12 @@ public class DeployinatorCommand extends CLICommand {
     @Override
     public void print(TaskListener listener) {
         listener.getLogger().println(String.format(
-          "Started by deployinator for %s\nVersion: %s\n",
-           HyperlinkNote.encodeTo(getUserUrl(), getUserName()), 
-           getVersion()));
+            "Started by deployinator for %s\n"
+            + "Old Revision: %s, New Revision: %s %s\n",
+            HyperlinkNote.encodeTo(getUserUrl(), getUserName()), 
+            getOldRevision(),
+            getNewRevision(),
+            HyperlinkNote.encodeTo(getDeployinatorDiffUrl(), "diff")));
     }
 
     @Override
@@ -216,12 +285,27 @@ public class DeployinatorCommand extends CLICommand {
       }
       CLICause other = (CLICause) o;
       return Objects.equal(this.user, other.user)
-          && Objects.equal(this.version, other.version);
+          && Objects.equal(this.deployVersion, other.deployVersion);
     }
 
     @Override
     public int hashCode() {
-      return Objects.hashCode(this.user, this.version);
+      return Objects.hashCode(this.user, this.deployVersion);
+    }
+  }
+
+  @Extension
+  public static class CLIEnvironmentContributor
+  extends EnvironmentContributor {
+
+    @Override
+    public void buildEnvironmentFor(Run r, EnvVars envs, TaskListener listener) {
+      CLICause cause = (CLICause) r.getCause(CLICause.class);
+      if (cause == null) return;
+      envs.put("TRIGGERING_USER", cause.getUserName());
+      envs.put("DEPLOY_VERSION", cause.getDeployVersion());
+      envs.put("DEPLOY_OLD_REVISION", cause.getOldRevision());
+      envs.put("DEPLOY_NEW_REVISION", cause.getNewRevision());
     }
   }
 }
