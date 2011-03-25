@@ -140,7 +140,6 @@ public class DeployinatorCommand extends CLICommand {
 
      Future<? extends AbstractBuild> f = 
          job.scheduleBuild2(0, cause, a);
-     if (!sync) return 0;
 
      AbstractBuild build = null;
      do {
@@ -158,11 +157,15 @@ public class DeployinatorCommand extends CLICommand {
           "console"));
      build.setDescription(
          String.format(
-             "<h3>%s</h3><br/><h4>%s&rarr;%s</h4><a href='%s'>diff</a> ", 
+             "<h2 style='padding-bottom:0px;'>%s</h2>"
+             + "<h3 style='padding-top:0px;'>%s&rarr;%s"
+             + " <a href='%s'>diff</a></h3>", 
              cause.getUserName(),
              cause.getOldRevision(),
              cause.getNewRevision(),
              cause.getDeployinatorDiffUrl()));
+
+     if (!sync) return 0;
 
      AbstractBuild b = f.get();  // wait for completion
      stdout.println(
@@ -285,12 +288,20 @@ public class DeployinatorCommand extends CLICommand {
       }
       CLICause other = (CLICause) o;
       return Objects.equal(this.user, other.user)
-          && Objects.equal(this.deployVersion, other.deployVersion);
+          && Objects.equal(this.deployType, other.deployType)
+          && Objects.equal(this.deployVersion, other.deployVersion)
+          && Objects.equal(this.oldRevision, other.oldRevision)
+          && Objects.equal(this.newRevision, other.newRevision);
     }
 
     @Override
     public int hashCode() {
-      return Objects.hashCode(this.user, this.deployVersion);
+      return Objects.hashCode(
+          this.user,
+          this.deployType,
+          this.deployVersion,
+          this.oldRevision,
+          this.newRevision);
     }
   }
 
