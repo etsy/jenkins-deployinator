@@ -1,0 +1,17 @@
+<j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout" xmlns:t="/lib/hudson" xmlns:f="/lib/form" xmlns:i="jelly:fmt">
+  <j:set var="build" value="${job.getLastBuild()}"/>
+  <j:invokeStatic var="cause" className="com.etsy.jenkins.DeployinatorColumn" method="getCause">
+    <j:arg type="hudson.model.Run" value="${build}"/>
+  </j:invokeStatic>
+  <td>
+    <j:choose>
+      <j:when test="${cause!=null}">
+        ${%started_by_command(cause.getUserName(), cause.getUserUrl(), cause.getOldRevision(), cause.getNewRevision(), cause.getDeployinatorDiffUrl())}
+      </j:when>
+      <j:otherwise>
+        <st:nbsp/>
+      </j:otherwise>
+    </j:choose>
+  </td>
+</j:jelly>
+

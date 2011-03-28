@@ -158,7 +158,7 @@ public class DeployinatorCommand extends CLICommand {
      build.setDescription(
          String.format(
              "<h2 style='padding-bottom:0px;'>%s</h2>"
-             + "<h3 style='padding-top:0px;'>%s&rarr;%s"
+             + "<h3 style='padding-top:0px;'>%s &rarr; %s"
              + " <a href='%s'>diff</a></h3>", 
              cause.getUserName(),
              cause.getOldRevision(),
