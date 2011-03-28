@@ -17,14 +17,14 @@ public class StageNumberColumn extends ListViewColumn {
     return "";
   }
 
-  public static int getStageNumber(Run run) {
+  public static String getStageNumber(Run run) {
     StageNumberJobProperty prop = (StageNumberJobProperty)
         run.getParent().getProperty(StageNumberJobProperty.class);
     if (prop == null) {
-      return 0;
+      return "";
     }
 
-    return prop.getStageNumber();
+    return "" + prop.getStageNumber();
   }
 
   @Extension

@@ -1,10 +1,12 @@
 <j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout" xmlns:t="/lib/hudson" xmlns:f="/lib/form" xmlns:i="jelly:fmt">
   <j:set var="build" value="${job.getLastBuild()}"/>
-  <j:invokeStatic var="number" className="com.etsy.jenkins.DeployinatorColumn" method="getStageNumber">
+  <j:invokeStatic var="number" className="com.etsy.jenkins.StageNumberColumn" method="getStageNumber">
     <j:arg type="hudson.model.Run" value="${build}"/>
   </j:invokeStatic>
-  <td style="visibility:hidden">
-    ${number}
+  <td>
+    <p style="visibility:hidden">
+      ${number}
+    </p>
   </td>
 </j:jelly>
 
