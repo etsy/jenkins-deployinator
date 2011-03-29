@@ -2,5 +2,5 @@
   <f:optionalBlock 
       name="deployinatorRestrict" 
       title="${%Only allow builds invoked by Deployinator}" 
-      checked="${!it.disabled}" />
+      checked="${(instance != null) &amp;&amp; instance.isEnabled()}" />
 </j:jelly>

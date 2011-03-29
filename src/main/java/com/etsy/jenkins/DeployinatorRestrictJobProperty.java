@@ -18,15 +18,19 @@ import net.sf.json.JSONObject;
 public class DeployinatorRestrictJobProperty 
 extends JobProperty<AbstractProject<?, ?>> {
 
-  public boolean disabled;
+  private boolean enable;
 
-  public DeployinatorRestrictJobProperty(boolean disabled) {
-    this.disabled = disabled;
+  public DeployinatorRestrictJobProperty(boolean enable) {
+    this.enable = enable;
+  }
+
+  public boolean isEnabled() {
+    return enable;
   }
 
   @Override
   public boolean prebuild(AbstractBuild build, BuildListener listener) {
-    if (disabled) {
+    if (!enable) {
       return true;
     }
 
@@ -47,6 +51,11 @@ extends JobProperty<AbstractProject<?, ?>> {
   public static final DescriptorImpl DESCRIPTOR = new DescriptorImpl();
   public static class DescriptorImpl extends JobPropertyDescriptor {
 
+    public DescriptorImpl() {
+      super(DeployinatorRestrictJobProperty.class);
+      load();
+    }
+
     @Override
     public String getDisplayName() {
       return "Only allow builds invoked by Deployinator.";
@@ -60,8 +69,13 @@ extends JobProperty<AbstractProject<?, ?>> {
     @Override
     public JobProperty<?> newInstance(
         StaplerRequest req, JSONObject formData) {
-      JSONObject restrict = formData.optJSONObject("deployinatorRestrict");
-      return new DeployinatorRestrictJobProperty(restrict == null);
+      JSONObject enable = formData.optJSONObject("deployinatorRestrict");
+      DeployinatorRestrictJobProperty prop =
+          new DeployinatorRestrictJobProperty(enable != null);
+      if (!prop.isEnabled()) {
+        return null;
+      }
+      return prop;
     }
   }
 }
