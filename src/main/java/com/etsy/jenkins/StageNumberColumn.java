@@ -1,6 +1,7 @@
 package com.etsy.jenkins;
 
 import hudson.Extension;
+import hudson.model.Job;
 import hudson.model.Run;
 import hudson.views.ListViewColumn;
 import hudson.views.ListViewColumnDescriptor;
@@ -17,7 +18,11 @@ public class StageNumberColumn extends ListViewColumn {
     return "";
   }
 
-  public static String getStageNumber(Run run) {
+  public static String getStageNumber(Job job) {
+    Run run = job.getLastBuild();
+    if (run == null) {
+      return "";
+    }
     StageNumberJobProperty prop = (StageNumberJobProperty)
         run.getParent().getProperty(StageNumberJobProperty.class);
     if (prop == null) {

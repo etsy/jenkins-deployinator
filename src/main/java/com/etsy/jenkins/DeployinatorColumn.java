@@ -3,6 +3,7 @@ package com.etsy.jenkins;
 import com.etsy.jenkins.cli.DeployinatorCommand;
 
 import hudson.Extension;
+import hudson.model.Job;
 import hudson.model.Run;
 import hudson.views.ListViewColumn;
 import hudson.views.ListViewColumnDescriptor;
@@ -19,7 +20,11 @@ public class DeployinatorColumn extends ListViewColumn {
     return "Deploy Info";
   }
 
-  public static DeployinatorCommand.CLICause getCause(Run run) {
+  public static DeployinatorCommand.CLICause getCause(Job job) {
+    Run run = job.getLastBuild();
+    if (run == null) {
+      return null;
+    }
     return (DeployinatorCommand.CLICause) 
         run.getCause(DeployinatorCommand.CLICause.class);
   }

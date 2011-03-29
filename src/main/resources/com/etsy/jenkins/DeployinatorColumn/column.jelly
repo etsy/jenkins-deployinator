@@ -1,7 +1,6 @@
 <j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout" xmlns:t="/lib/hudson" xmlns:f="/lib/form" xmlns:i="jelly:fmt">
-  <j:set var="build" value="${job.getLastBuild()}"/>
   <j:invokeStatic var="cause" className="com.etsy.jenkins.DeployinatorColumn" method="getCause">
-    <j:arg type="hudson.model.Run" value="${build}"/>
+    <j:arg type="hudson.model.Job" value="${job}"/>
   </j:invokeStatic>
   <td>
     <j:choose>
