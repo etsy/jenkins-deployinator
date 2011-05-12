@@ -38,10 +38,10 @@ public class DeployinatorRestrictJobFilter implements Filter {
         AbstractProject project = 
             (AbstractProject) HUDSON.getItem(projectName);
         if (project != null) {
-            DeployinatorRestrictJobProperty property
-                = (DeployinatorRestrictJobProperty)
-                    project.getProperty(DeployinatorRestrictJobProperty.class);
-          if (property.isEnabled()) {
+          DeployinatorRestrictJobProperty property
+              = (DeployinatorRestrictJobProperty)
+                  project.getProperty(DeployinatorRestrictJobProperty.class);
+          if ((property != null) && property.isEnabled()) {
             // TODO Make a global setting for the Deployinator
             httpRes.sendRedirect("http://deployinator.etsycorp.com");
             return;
