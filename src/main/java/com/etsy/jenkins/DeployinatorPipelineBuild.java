@@ -54,13 +54,16 @@ public class DeployinatorPipelineBuild extends PipelineBuild {
 
   @Override
   public String getScmRevision() {
-    DeployinatorCommand.CLICause cause = 
-        getCurrentBuild().getCause(DeployinatorCommand.CLICause.class);
-    if (cause != null) {
-      return String.format(
-          "%s &rarr; %s",
-          cause.getOldRevision(),
-          cause.getNewRevision());
+    AbstractBuild<?, ?> build = getCurrentBuild();
+    if (build != null) {
+      DeployinatorCommand.CLICause cause = 
+          build.getCause(DeployinatorCommand.CLICause.class);
+      if (cause != null) {
+        return String.format(
+            "%s &rarr; %s",
+            cause.getOldRevision(),
+            cause.getNewRevision());
+      }
     }
     return super.getScmRevision();
   }
