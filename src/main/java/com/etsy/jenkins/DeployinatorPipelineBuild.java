@@ -45,7 +45,7 @@ public class DeployinatorPipelineBuild extends PipelineBuild {
         returnedBuild = DeployinatorUtil.getDownstreamBuild(proj, currentBuild);
       }
       PipelineBuild newPB =
-          new PipelineBuild(returnedBuild, proj, currentBuild);
+          new DeployinatorPipelineBuild(returnedBuild, proj, currentBuild);
       pbList.add(newPB);
     }
 
