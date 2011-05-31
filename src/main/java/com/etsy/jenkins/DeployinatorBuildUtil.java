@@ -5,31 +5,31 @@ import com.etsy.jenkins.cli.DeployinatorCommand;
 import hudson.model.AbstractBuild;
 import hudson.model.AbstractProject;
 
+import com.google.inject.Inject;
+
 import au.com.centrumsystems.hudson.plugin.util.BuildUtil;
+import au.com.centrumsystems.hudson.plugin.util.HudsonResult;
 
 import java.util.List;
 
-public class DeployinatorUtil {
+public class DeployinatorBuildUtil extends BuildUtil {
 
-  public static boolean isRestricted(AbstractProject<?, ?> project) {
-    if (project != null) {
-      DeployinatorRestrictJobProperty property =
-          (DeployinatorRestrictJobProperty)
-              project.getProperty(DeployinatorRestrictJobProperty.class);
-      if ((property != null) && property.isEnabled()) {
-        return true;
-      }
-    }
-    return false;
+  private final DeployinatorProjectUtil projectUtil;
+
+  @Inject
+  public DeployinatorBuildUtil(DeployinatorProjectUtil projectUtil) {
+    super();
+    this.projectUtil = projectUtil;
   }
 
-  public static AbstractBuild<?, ?> getDownstreamBuild(
-      AbstractProject<?, ?> downstreamProject, 
-      AbstractBuild<?, ?> upstreamBuild) {
+  @Override
+  public AbstractBuild<?, ?> getDownstreamBuild(
+      final AbstractProject<?, ?> downstreamProject,
+      final AbstractBuild<?, ?> upstreamBuild) {
     DeployinatorCommand.CLICause upstreamCause =
         upstreamBuild.getCause(DeployinatorCommand.CLICause.class);
     if (upstreamCause == null) {
-      return BuildUtil.getDownstreamBuild(downstreamProject, upstreamBuild);
+      return super.getDownstreamBuild(downstreamProject, upstreamBuild);
     }
     for (AbstractBuild<?, ?> build : downstreamProject.getBuilds()) {
       DeployinatorCommand.CLICause cause =
