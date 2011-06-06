@@ -1,0 +1,20 @@
+<j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout" xmlns:t="/lib/hudson" xmlns:f="/lib/form" xmlns:i="jelly:fmt">
+
+  <div class="revision rounded">
+    <div>
+      <j:set var="cause" value="${it.getCause()}"/>
+      <j:choose>
+        <j:when test="${cause != null}">
+          ${%started_by_command(cause.getUserName(), cause.getUserUrl(), cause.getOldRevision(), cause.getNewRevision(), cause.getDeployinatorDiffUrl())}
+        </j:when>
+        <j:otherwise>
+          <a href="#" title="${it.getRevision()}">
+            <div>${it.getShortRevision()}</div>
+          </a>
+        </j:otherwise>
+      </j:choose>
+    </div>
+  </div>
+
+</j:jelly>
+
