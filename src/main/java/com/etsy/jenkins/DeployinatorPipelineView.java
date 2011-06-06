@@ -11,13 +11,11 @@ import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.StaplerRequest;
 import org.kohsuke.stapler.StaplerResponse;
 
-import au.com.centrumsystems.hudson.plugin.buildpipeline.BuildForm;
-import au.com.centrumsystems.hudson.plugin.buildpipeline.BuildPipelineForm;
+import au.com.centrumsystems.hudson.plugin.buildpipeline.BuildPipelineModule;
 import au.com.centrumsystems.hudson.plugin.buildpipeline.BuildPipelineView;
-import au.com.centrumsystems.hudson.plugin.buildpipeline.ProjectForm;
-import au.com.centrumsystems.hudson.plugin.util.ProjectUtil;
+import au.com.centrumsystems.hudson.plugin.buildpipeline.ProjectFormModule;
 
-import com.google.common.collect.Lists;
+import com.google.inject.Guice;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
@@ -35,35 +33,11 @@ public class DeployinatorPipelineView extends BuildPipelineView {
   }
 
   @Override
-  public BuildPipelineForm getBuildPipelineForm() throws URISyntaxException {
-    AbstractProject<?, ?> project = getSelectedProject();
-    BuildPipelineForm buildPipelineForm = null;
-    if (project != null) {
-      int maxNoOfDisplayBuilds = Integer.valueOf(getNoOfDisplayedBuilds());
-      int rowsAppended = 0;
-      List<BuildForm> buildForms = Lists.<BuildForm>newArrayList();
-      for (AbstractBuild<?, ?> currentBuild : project.getBuilds()) {
-        buildForms.add(
-            new BuildForm(
-            new DeployinatorPipelineBuild(currentBuild, project, null)));
-        rowsAppended++;
-        if (rowsAppended >= maxNoOfDisplayBuilds) {
-          break;
-        }
-      }
-      buildPipelineForm = new BuildPipelineForm(
-          new ProjectForm(project), 
-          buildForms);
-    }
-    return buildPipelineForm;
-  }
-
-  @Override
   public void doManualExecution(
       final StaplerRequest req, final StaplerResponse res) {
     AbstractProject<?, ?> triggerProject = (AbstractProject<?,?>)
         getJob(req.getParameter("triggerProjectName"));
-    if (DeployinatorUtil.isRestricted(triggerProject)) {
+    if (isRestricted(triggerProject)) {
       try {
         res.sendRedirect2("http://deployinator.etsycorp.com");
       } catch (IOException e) {
@@ -76,25 +50,29 @@ public class DeployinatorPipelineView extends BuildPipelineView {
 
   @Override
   public void invokeBuild() {
-    if (DeployinatorUtil.isRestricted(getSelectedProject())) {
+    if (isRestricted(getSelectedProject())) {
       return;
     }
 
     super.invokeBuild();
   }
 
+  private boolean isRestricted(AbstractProject<?, ?> project) {
+    return new DeployinatorProjectUtil().isRestricted(project);
+  }
+
   /**
    * Have to copy the whole thing since the original class was made final
    */
   @Extension
-  public static final class DescriptorImpl extends ViewDescriptor {
+  public static class DescriptorImpl extends BuildPipelineView.DescriptorImpl {
 
     /**
      * descriptor impl constructor This empty constructor is required for stapler. If you remove this constructor, text name of
      * "Build Pipeline View" will be not displayed in the "NewView" page
      */
     public DescriptorImpl() {
-      super();
+      super(Guice.createInjector(new DeployinatorPipelineModule(), new BuildPipelineModule(), new ProjectFormModule()));
     }
 
     /**
@@ -105,44 +83,6 @@ public class DeployinatorPipelineView extends BuildPipelineView {
     @Override
     public String getDisplayName() {
       return "Deployinator Pipeline View";
-    }
-
-    /**
-     * Display Job List Item in the Edit View Page
-     * 
-     * @return ListBoxModel
-     */
-    public ListBoxModel doFillSelectedJobItems() {
-      ListBoxModel options = new ListBoxModel();
-      for (String jobName : Hudson.getInstance().getJobNames()) {
-        options.add(jobName);
-      }
-      return options;
-    }
-
-    /**
-     * Display No Of Builds Items in the Edit View Page
-     * 
-     * @return ListBoxModel
-     */
-    public ListBoxModel doFillNoOfDisplayedBuildsItems() {
-      ListBoxModel options = new ListBoxModel();
-      List<String> noOfBuilds = Lists.<String>newArrayList();
-      noOfBuilds.add("1");
-      noOfBuilds.add("2");
-      noOfBuilds.add("3");
-      noOfBuilds.add("5");
-      noOfBuilds.add("10");
-      noOfBuilds.add("20");
-      noOfBuilds.add("50");
-      noOfBuilds.add("100");
-      noOfBuilds.add("200");
-      noOfBuilds.add("500");
-
-      for (String noOfBuild : noOfBuilds) {
-        options.add(noOfBuild);
-      }
-      return options;
     }
   }
 }
