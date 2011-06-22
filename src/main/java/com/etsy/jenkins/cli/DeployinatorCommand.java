@@ -259,7 +259,7 @@ public class DeployinatorCommand extends CLICommand {
     public String getDeployinatorDiffUrl() {
       // TODO Add a global config var for deployinator host
       return String.format(
-          "http://deployinator.etsycorp.com/diff/%s/%s/%s/compare",
+          "http://deployinator.etsycorp.com/diff/%s/%s...%s",
           this.deployType,
           this.oldRevision,
           this.newRevision);
