@@ -142,15 +142,20 @@ public class DeployinatorCommand extends CLICommand {
          job.scheduleBuild2(0, cause, a);
 
      AbstractBuild build = null;
+     stdout.print(
+        String.format("%s job queued -- "
+                      + "waiting for Jenkins to return a job number "
+                      + "(also available in IRC #push channel)", 
+                      job.getDisplayName()));
      do {
        build = findBuild(job, cause);
-       stdout.println(
-           String.format("......... %s (pending)\n", job.getDisplayName()));
+       stdout.print(".");
        rest();
      } while(build == null);
+     stdout.println();
 
      stdout.println(
-         String.format("......... %s ( %s%s%s )\n", 
+         String.format("%s job submitted -- see status at %s%s%s \n", 
           job.getDisplayName(),
           Hudson.getInstance().getRootUrl(),
           build.getUrl(),
