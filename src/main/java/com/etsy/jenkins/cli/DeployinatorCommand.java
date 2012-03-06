@@ -1,5 +1,6 @@
 package com.etsy.jenkins.cli;
 
+import com.etsy.jenkins.DeployinatorPlugin;
 import com.etsy.jenkins.cli.handlers.ProxyUserOptionHandler;
 
 import hudson.AbortException;
@@ -262,9 +263,12 @@ public class DeployinatorCommand extends CLICommand {
 
     @Exported(visibility=3)
     public String getDeployinatorDiffUrl() {
-      // TODO Add a global config var for deployinator host
+      String serverAddress = Hudson.getInstance()
+          .getPlugin(DeployinatorPlugin.class)
+          .getDeployinatorServerToUse();
       return String.format(
-          "http://deployinator.etsycorp.com/diff/%s/%s/%s",
+          "%s/diff/%s/%s/%s",
+          serverAddress,
           this.deployType,
           this.oldRevision,
           this.newRevision);

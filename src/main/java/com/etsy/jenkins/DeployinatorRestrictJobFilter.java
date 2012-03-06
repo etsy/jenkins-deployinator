@@ -42,8 +42,9 @@ public class DeployinatorRestrictJobFilter implements Filter {
               = (DeployinatorRestrictJobProperty)
                   project.getProperty(DeployinatorRestrictJobProperty.class);
           if ((property != null) && property.isEnabled()) {
-            // TODO Make a global setting for the Deployinator
-            httpRes.sendRedirect("http://deployinator.etsycorp.com");
+            String serverAddress = HUDSON.getPlugin(DeployinatorPlugin.class)
+                .getDeployinatorServerToUse();
+            httpRes.sendRedirect(serverAddress);
             return;
           }
         }

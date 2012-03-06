@@ -39,7 +39,10 @@ public class DeployinatorPipelineView extends BuildPipelineView {
         getJob(req.getParameter("triggerProjectName"));
     if (isRestricted(triggerProject)) {
       try {
-        res.sendRedirect2("http://deployinator.etsycorp.com");
+        String serverAddress = Hudson.getInstance()
+            .getPlugin(DeployinatorPlugin.class)
+            .getDeployinatorServerToUse();
+        res.sendRedirect2(serverAddress);
       } catch (IOException e) {
         throw new RuntimeException(e);
       }
