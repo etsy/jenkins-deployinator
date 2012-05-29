@@ -1,7 +1,7 @@
 Jenkins Plugin: Deployinator
 ==============================
 
-This is a plugin for [Jenkins][http://jenkins-ci.org] Continuous Integration Server.  This plugin provides hooks (CLI) for associating Deployinator stacks to a Jenkins pipeline.
+This is a plugin for [Jenkins](http://jenkins-ci.org) Continuous Integration Server.  This plugin provides hooks (CLI) for associating Deployinator stacks to a Jenkins pipeline.
 
 Installation
 ---------------------------
